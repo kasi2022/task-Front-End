@@ -79,7 +79,7 @@ export default function SignInCard() {
     const password = data.get('password');
 
     try {
-      const response = await axios.post('http://localhost:7000/api/v1/users/login', {
+      const response = await axios.post('https://restaurant-inventory-tracker-backend.onrender.com/api/v1/users/login', {
         email,
         password,
       });

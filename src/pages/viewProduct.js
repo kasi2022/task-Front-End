@@ -42,7 +42,7 @@ export default function DataGridProduct() {
   const [selectedRow, setSelectedRow] = React.useState(null);
 
   const fetchData = () => {
-    axios.get('http://localhost:7000/api/v1/getproduct')
+    axios.get('https://restaurant-inventory-tracker-backend.onrender.com/api/v1/getproduct')
       .then((res) => {
         const mappedRows = res.data.items.map((item, index) => ({
           ...item,
@@ -63,7 +63,7 @@ export default function DataGridProduct() {
   };
 
   const handleDelete = (row) => {
-    axios.delete(`http://localhost:7000/api/v1/deleteproduct/${row.id}`)
+    axios.delete(`https://restaurant-inventory-tracker-backend.onrender.com/api/v1/deleteproduct/${row.id}`)
       .then(() => {
         fetchData();
         alert('Item deleted successfully');
@@ -73,7 +73,7 @@ export default function DataGridProduct() {
 
   const handleSave = () => {
     const { id, name, unit, quantity, reorderThreshold } = selectedRow;
-    axios.put(`http://localhost:7000/api/v1/editproduct/${id}`, {
+    axios.put(`https://restaurant-inventory-tracker-backend.onrender.com/api/v1/editproduct/${id}`, {
       name, unit, quantity, reorderThreshold
     })
       .then(() => {

@@ -40,17 +40,17 @@ function ProductAdd() {
     const handleSubmit = async () => {
         if (!validate()) return;
         try {
-            const response = await axios.post('http://localhost:7000/api/v1/addproduct', formData);
+            const response = await axios.post('https://restaurant-inventory-tracker-backend.onrender.com/api/v1/addproduct', formData);
             console.log('Product added:', response.data);
             alert('Product added successfully!');
             setFormData({ name: '', unit: '', quantity: '', reorderThreshold: '' });
         } catch (err) {
             console.error('Error adding product:', err);
-                    if (err.response && err.response.data && err.response.data.message) {
-            setErrors({ name: err.response.data.message }); // optionally show under the name field
-        } else {
-            alert('Failed to add product');
-        }
+            if (err.response && err.response.data && err.response.data.message) {
+                setErrors({ name: err.response.data.message }); // optionally show under the name field
+            } else {
+                alert('Failed to add product');
+            }
         }
     };
 
@@ -93,7 +93,7 @@ function ProductAdd() {
                 helperText={errors.reorderThreshold}
                 fullWidth
             />
-            <Box sx={{  mt: 2 }}>
+            <Box sx={{ mt: 2 }}>
                 <Button variant="contained" onClick={handleSubmit}>
                     Submit
                 </Button>

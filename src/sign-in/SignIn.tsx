@@ -120,7 +120,7 @@ export default function SignIn(props) {
     if (!isValid) return;
 
     try {
-      const response = await axios.post('http://localhost:7000/v1/users/register', {
+      const response = await axios.post('https://restaurant-inventory-tracker-backend.onrender.com/v1/users/register', {
         username,
         email,
         password,

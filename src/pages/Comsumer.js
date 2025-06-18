@@ -11,7 +11,7 @@ function Comsumer() {
     const [editedQuantities, setEditedQuantities] = React.useState({});
 
     const fetchData = () => {
-        axios.get('http://localhost:7000/api/v1/getproduct')
+        axios.get('https://restaurant-inventory-tracker-backend.onrender.com/api/v1/getproduct')
             .then((res) => {
                 const mappedRows = res.data.items.map((item) => ({
                     ...item,
@@ -35,13 +35,13 @@ function Comsumer() {
             const quantityUsed = item.quantity - newQuantity;
 
             // Update quantity
-            await axios.patch(`http://localhost:7000/api/v1/consumer/${id}/quantity`, {
+            await axios.patch(`https://restaurant-inventory-tracker-backend.onrender.com/api/v1/consumer/${id}/quantity`, {
                 quantity: newQuantity
             });
 
             // Log consumption only if quantity is reduced
             if (quantityUsed > 0) {
-                await axios.post(`http://localhost:7000/api/v1/consume/${id}`, {
+                await axios.post(`https://restaurant-inventory-tracker-backend.onrender.com/api/v1/consume/${id}`, {
                     quantityUsed,
                     consumer: 'admin'
                 });

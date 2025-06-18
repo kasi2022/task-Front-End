@@ -6,7 +6,7 @@ export default function CustomizedDataGrid() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:7000/api/v1/getproduct')
+    axios.get('https://restaurant-inventory-tracker-backend.onrender.com/api/v1/getproduct')
       .then((res) => {
         if (res.data.success) {
           const transformed = res.data.items.map((item, index) => ({

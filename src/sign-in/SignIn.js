@@ -123,7 +123,7 @@ export default function SignIn(props) {
 
     try {
       const response = await axios.post(
-        'http://localhost:7000/api/v1/users/register',
+        'https://restaurant-inventory-tracker-backend.onrender.com/api/v1/users/register',
         { username, email, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
