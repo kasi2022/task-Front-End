@@ -16,6 +16,12 @@ import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -69,10 +75,18 @@ export default function SignIn(props) {
   const [usernameErrorMessage, setUsernameErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  const [open, setOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  const handleClose = () => {
-    setOpen(false);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogTitle, setDialogTitle] = React.useState('');
+  const [dialogMessage, setDialogMessage] = React.useState('');
+  const [isSuccess, setIsSuccess] = React.useState(false);
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    if (isSuccess) {
+      navigate('/');
+    }
   };
 
   const validateInputs = (username, email, password) => {
@@ -119,7 +133,7 @@ export default function SignIn(props) {
     const isValid = validateInputs(username, email, password);
     if (!isValid) return;
 
-    console.log("Submitting form with:", { username, email, password });
+    setLoading(true);
 
     try {
       const response = await axios.post(
@@ -128,16 +142,25 @@ export default function SignIn(props) {
         { headers: { 'Content-Type': 'application/json' } }
       );
 
-      console.log('Success:', response.data);
-      navigate('/');
-    } catch (error) {
-      if (error.response) {
-        console.error('API Error Response:', error.response.data);
-      } else if (error.request) {
-        console.error('API No Response Received:', error.request);
-      } else {
-        console.error('Error Setting Up Request:', error.message);
+      if (response.status === 200 || response.status === 201) {
+        setDialogTitle('Registration Successful');
+        setDialogMessage('You have successfully registered. Redirecting to home...');
+        setIsSuccess(true);
+        setDialogOpen(true);
       }
+    } catch (error) {
+      setIsSuccess(false);
+      setDialogTitle('Registration Failed');
+      if (error.response) {
+        setDialogMessage(error.response.data?.message || 'An error occurred. Please try again.');
+      } else if (error.request) {
+        setDialogMessage('No response received from server.');
+      } else {
+        setDialogMessage(error.response.data?.message || 'An error occurred.');
+      }
+      setDialogOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -229,14 +252,27 @@ export default function SignIn(props) {
                 label="Remember me"
               />
 
-              <ForgotPassword open={open} handleClose={handleClose} />
+              <ForgotPassword open={false} handleClose={() => { }} />
 
-              <Button type="submit" fullWidth variant="contained">
-                Sign in
+              <Button type="submit" fullWidth variant="contained" disabled={loading}>
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign in'}
               </Button>
             </Box>
           </Card>
         </Box>
+
+        {/* Dialog for Success/Error */}
+        <Dialog open={dialogOpen} onClose={handleDialogClose}>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogContent>
+            <DialogContentText>{dialogMessage}</DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDialogClose} autoFocus>
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
       </SignInContainer>
     </AppTheme>
   );

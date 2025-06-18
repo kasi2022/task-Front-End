@@ -40,6 +40,7 @@ function AppTheme(props) {
   return (
     <ThemeProvider theme={theme} disableTransitionOnChange>
       {children}
+      
     </ThemeProvider>
   );
 }
@@ -51,6 +52,7 @@ AppTheme.propTypes = {
    */
   disableCustomTheme: PropTypes.bool,
   themeComponents: PropTypes.object,
+  
 };
 
 export default AppTheme;

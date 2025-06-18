@@ -4,150 +4,165 @@ import React from 'react';
 import axios from 'axios';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import CheckIcon from '@mui/icons-material/Check';
 
 function Comsumer() {
-    const [rows, setRows] = React.useState([]);
-    const [search, setSearch] = React.useState('');
-    const [editedQuantities, setEditedQuantities] = React.useState({});
+  const [rows, setRows] = React.useState([]);
+  const [search, setSearch] = React.useState('');
+  const [editedQuantities, setEditedQuantities] = React.useState({});
 
-    const fetchData = () => {
-        axios.get('https://restaurant-inventory-tracker-backend.onrender.com/api/v1/getproduct')
-            .then((res) => {
-                const mappedRows = res.data.items.map((item) => ({
-                    ...item,
-                    id: item._id,
-                }));
-                setRows(mappedRows);
-            })
-            .catch((err) => console.error('Fetch error:', err));
-    };
+  const fetchData = () => {
+    axios
+      .get('https://restaurant-inventory-tracker-backend.onrender.com/api/v1/getproduct')
+      .then((res) => {
+        const mappedRows = res.data.items.map((item) => ({
+          ...item,
+          id: item._id,
+        }));
+        setRows(mappedRows);
+      })
+      .catch((err) => console.error('Fetch error:', err));
+  };
 
-    React.useEffect(() => {
-        fetchData();
-    }, []);
+  React.useEffect(() => {
+    fetchData();
+  }, []);
 
-    const handleQuantityChange = async (id) => {
-        const newQuantity = editedQuantities[id];
-        const item = rows.find(row => row._id === id);
-        if (!item || newQuantity == null || newQuantity === item.quantity) return;
+  const handleInputChange = (id, value) => {
+    if (!isNaN(value)) {
+      setEditedQuantities((prev) => ({ ...prev, [id]: Number(value) }));
+    }
+  };
 
-        try {
-            const quantityUsed = item.quantity - newQuantity;
+  const handleQuantityChange = async (id) => {
+    const newQuantity = editedQuantities[id];
+    const item = rows.find((row) => row.id === id);
 
-            // Update quantity
-            await axios.patch(`https://restaurant-inventory-tracker-backend.onrender.com/api/v1/consumer/${id}/quantity`, {
-                quantity: newQuantity
-            });
+    if (!item || newQuantity == null || newQuantity === item.quantity) return;
 
-            // Log consumption only if quantity is reduced
-            if (quantityUsed > 0) {
-                await axios.post(`https://restaurant-inventory-tracker-backend.onrender.com/api/v1/consume/${id}`, {
-                    quantityUsed,
-                    consumer: 'admin'
-                });
-            }
+    try {
+      const quantityUsed = item.quantity - newQuantity;
 
-            setEditedQuantities((prev) => ({ ...prev, [id]: undefined }));
-            fetchData();
-        } catch (error) {
-            console.error(" Failed to update quantity or log consumption:", error);
-        }
-    };
-
-    // const handleInputChange = (id, value) => {
-    //     if (!isNaN(value)) {
-    //         setEditedQuantities((prev) => ({ ...prev, [id]: Number(value) }));
-    //     }
-    // };
-
-    const filteredRows = rows.filter(item =>
-        item.name.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const columns = [
-        { field: 'id', headerName: 'ID', width: 90 },
-        { field: 'name', headerName: 'Item Name', width: 160 },
-        { field: 'unit', headerName: 'Unit', width: 100 },
+      await axios.patch(
+        `https://restaurant-inventory-tracker-backend.onrender.com/api/v1/consumer/${id}/quantity`,
+        { quantity: newQuantity },
         {
-            field: 'quantity',
-            headerName: 'Quantity',
-            width: 250,
-            renderCell: (params) => {
-                const id = params.row._id;
-                const currentQuantity = params.row.quantity;
-                const quantity = editedQuantities[id] ?? currentQuantity;
-
-                return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <IconButton
-                            size="small"
-                            onClick={() => setEditedQuantities(prev => ({
-                                ...prev,
-                                [id]: Math.max(0, (prev[id] ?? currentQuantity) - 1)
-                            }))}
-                        >
-                            <RemoveIcon fontSize="small" />
-                        </IconButton>
-
-                        <TextField
-                            value={quantity}
-                            onChange={(e) => {
-                                const val = Number(e.target.value);
-                                if (!isNaN(val)) {
-                                    setEditedQuantities((prev) => ({ ...prev, [id]: val }));
-                                }
-                            }}
-                            size="small"
-                            sx={{ width: 60 }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleQuantityChange(id);
-                            }}
-                        />
-
-                        <IconButton
-                            size="small"
-                            onClick={() => setEditedQuantities(prev => ({
-                                ...prev,
-                                [id]: (prev[id] ?? currentQuantity) + 1
-                            }))}
-                        >
-                            <AddIcon fontSize="small" />
-                        </IconButton>
-
-                        <IconButton
-                            size="small"
-                            onClick={() => handleQuantityChange(id)}
-                            title="Save"
-                            color="primary"
-                        >
-                            ✅
-                        </IconButton>
-                    </Box>
-                );
-            }
+          headers: { 'Content-Type': 'application/json' },
         }
-    ];
+      );
 
-    return (
-        <Box sx={{ m: 2 }}>
+      if (quantityUsed > 0) {
+        await axios.post(
+          `https://restaurant-inventory-tracker-backend.onrender.com/api/v1/consume/${id}`,
+          {
+            quantityUsed,
+            consumer: 'admin',
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      setEditedQuantities((prev) => ({ ...prev, [id]: undefined }));
+      fetchData();
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+      if (error.response) {
+        console.error('Response:', error.response.data);
+      }
+    }
+  };
+
+  const filteredRows = rows.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const columns = [
+    { field: 'id', headerName: 'ID', width: 90 },
+    { field: 'name', headerName: 'Item Name', width: 160 },
+    { field: 'unit', headerName: 'Unit', width: 100 },
+    {
+      field: 'quantity',
+      headerName: 'Quantity',
+      width: 260,
+      renderCell: (params) => {
+        const id = params.row.id;
+        const currentQuantity = params.row.quantity;
+        const editedQuantity = editedQuantities[id];
+        const quantity = editedQuantity ?? currentQuantity;
+        const isChanged = editedQuantity !== undefined && editedQuantity !== currentQuantity;
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton
+              size="small"
+              onClick={() =>
+                setEditedQuantities((prev) => ({
+                  ...prev,
+                  [id]: Math.max(0, (prev[id] ?? currentQuantity) - 1),
+                }))
+              }
+            >
+              <RemoveIcon fontSize="small" />
+            </IconButton>
+
             <TextField
-                label="Search Item"
-                variant="outlined"
-                size="small"
-                fullWidth
-                sx={{ mb: 2 }}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+              value={quantity}
+              onChange={(e) => handleInputChange(id, e.target.value)}
+              size="small"
+              sx={{ width: 60 }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleQuantityChange(id);
+              }}
             />
-            <DataGrid
-                rows={filteredRows}
-                columns={columns}
-                pageSizeOptions={[5]}
-                paginationModel={{ pageSize: 5, page: 0 }}
-                disableRowSelectionOnClick
-            />
-        </Box>
-    );
+
+            <IconButton
+              size="small"
+              onClick={() =>
+                setEditedQuantities((prev) => ({
+                  ...prev,
+                  [id]: (prev[id] ?? currentQuantity) + 1,
+                }))
+              }
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
+
+            <IconButton
+              size="small"
+              onClick={() => handleQuantityChange(id)}
+              title="Save"
+              sx={{ color: isChanged ? 'green' : 'inherit' }} // Green when edited
+            >
+              <CheckIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        );
+      },
+    },
+  ];
+
+  return (
+    <Box sx={{ m: 2 }}>
+      <TextField
+        label="Search Item"
+        variant="outlined"
+        size="small"
+        fullWidth
+        sx={{ mb: 2 }}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      <DataGrid
+        rows={filteredRows}
+        columns={columns}
+        pageSizeOptions={[5]}
+        paginationModel={{ pageSize: 5, page: 0 }}
+        disableRowSelectionOnClick
+      />
+    </Box>
+  );
 }
 
 export default Comsumer;
